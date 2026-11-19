@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Ticket sales · TEDxMontereyPark</title>
+<style>
+:root { color-scheme: light; font-family: Inter, system-ui, sans-serif; color: #191814; background: #f7f6f2; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+main { max-width: 820px; margin: 0 auto; padding: clamp(28px, 6vw, 72px) 20px 48px; }
+header { margin-bottom: 32px; }
+.brand { font-size: 1.15rem; font-weight: 780; letter-spacing: -.045em; }
+.brand b { color: #c82619; }
+h1 { font-size: clamp(2.35rem, 7vw, 4rem); letter-spacing: -.075em; line-height: .98; margin: 19px 0 13px; }
+p { margin: 0; line-height: 1.5; }
+.muted { color: #5d5850; }
+.panel { background: #fff; border: 1px solid #e1ded7; border-radius: 17px; padding: clamp(18px, 4vw, 30px); margin-bottom: 16px; }
+.metrics { margin: 0; }
+dt { color: #5d5850; font-size: .88rem; }
+dd { margin: 2px 0 0; font-size: clamp(1.38rem, 5vw, 2.8rem); font-weight: 760; letter-spacing: -.06em; font-variant-numeric: tabular-nums; }
+h2 { margin: 0 0 10px; font-size: 1.15rem; letter-spacing: -.025em; }
+.breakdown { margin: 0; }
+.breakdown div { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 0; border-bottom: 1px solid #eeeae5; }
+.breakdown div:last-of-type { border-bottom: 0; padding-bottom: 0; }
+.breakdown dt { color: #292621; font-size: .94rem; }
+.breakdown dd { font-size: 1.08rem; margin: 0; }
+.detail { font-size: .85rem; margin-top: 12px; }
+footer { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; padding: 5px 2px; font-size: .86rem; }
+a { color: #a3281f; text-underline-offset: 3px; }
+a:focus-visible { outline: 2px solid #a3281f; outline-offset: 4px; }
+</style>
+</head>
+<body>
+<main>
+<header>
+  <div class="brand"><b>TEDx</b>Monterey Park</div>
+  <h1>Ticket sales</h1>
+  <p class="muted">Reimagining Tomorrow · February 27, 2027</p>
+</header>
+<section class="panel" aria-label="Tickets sold">
+  <dl class="metrics">
+    <div><dt>Tickets sold</dt><dd data-field="sold"><!-- sold -->13<!-- /sold --></dd></div>
+  </dl>
+</section>
+<section class="panel" aria-labelledby="discounts">
+  <h2 id="discounts">Discounts</h2>
+  <dl class="breakdown">
+    <div><dt>Early-bird promotion</dt><dd data-field="earlyBird"><!-- earlyBird -->9<!-- /earlyBird --></dd></div>
+    <div><dt>Student admission</dt><dd data-field="student"><!-- student -->0<!-- /student --></dd></div>
+    <div><dt>Senior admission</dt><dd data-field="senior"><!-- senior -->0<!-- /senior --></dd></div>
+    <div><dt>Monterey Park resident admission</dt><dd data-field="resident"><!-- resident -->0<!-- /resident --></dd></div>
+    <div><dt>Nonprofit admission</dt><dd data-field="nonprofit"><!-- nonprofit -->0<!-- /nonprofit --></dd></div>
+  </dl>
+  <p class="muted detail">Four tickets sold before the promotion at the same $81.88 price.</p>
+</section>
+<footer>
+  <p class="muted" id="status" role="status"><!-- status -->Last checked <time datetime="2026-11-19T08:59:07.000Z">Nov 19, 2026, 12:59 AM PST</time><!-- /status --></p>
+  <a href="https://www.eventbrite.com/events/2001386613236/dashboard/?eid=2001386613236" target="_blank" rel="noopener noreferrer">Eventbrite organizer dashboard</a>
+</footer>
+</main>
+<script>
+const countFields = ["sold", "earlyBird", "student", "senior", "resident", "nonprofit"];
+const dateFormat = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/Los_Angeles", month: "short", day: "numeric", year: "numeric",
+  hour: "numeric", minute: "2-digit", timeZoneName: "short"
+});
+
+async function loadSnapshot() {
+  try {
+    const response = await fetch("./sales.json", {cache: "no-store"});
+    if (!response.ok) return;
+    const snapshot = await response.json();
+    const checkedAt = new Date(snapshot.checkedAt);
+    if (!countFields.every(key => Number.isSafeInteger(snapshot[key]) && snapshot[key] >= 0) ||
+        typeof snapshot.checkedAt !== "string" || !Number.isFinite(checkedAt.getTime())) return;
+    for (const key of countFields) {
+      document.querySelector('[data-field="' + key + '"]').textContent = snapshot[key];
+    }
+    const time = document.createElement("time");
+    time.dateTime = checkedAt.toISOString();
+    time.textContent = dateFormat.format(checkedAt);
+    document.getElementById("status").replaceChildren("Last checked ", time);
+  } catch {
+    // The dated snapshot embedded in the page remains available offline.
+  }
+}
+if (location.protocol !== "file:") loadSnapshot();
+</script>
+</body>
+</html>
